@@ -3,11 +3,11 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>GD ALPHA - PERFORMANCE FIX</title>
+    <title>GD ALPHA - MODERNIZED</title>
     <style>
         body { margin: 0; background: #000; overflow: hidden; font-family: 'Arial Black', sans-serif; touch-action: none; user-select: none; -webkit-tap-highlight-color: transparent; }
         #gameContainer { position: relative; width: 100vw; height: 100vh; display: flex; flex-direction: column; align-items: center; justify-content: center; }
-        canvas { background: #001f3f; border: 4px solid #00fff2; box-shadow: 0 0 10px #00fff2; max-width: 95vw; max-height: 50vw; }
+        canvas { background: #001f3f; border: 4px solid #00fff2; box-shadow: 0 0 20px rgba(0, 255, 242, 0.3); max-width: 95vw; max-height: 50vw; }
         
         /* UI */
         #uiLayer { position: absolute; top: 10px; width: 100%; display: flex; justify-content: space-between; padding: 0 20px; box-sizing: border-box; pointer-events: none; z-index: 10; color: white; font-size: 20px; text-shadow: 2px 2px #000; }
@@ -16,25 +16,24 @@
         .overlay { position: absolute; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.9); display: flex; flex-direction: column; align-items: center; justify-content: center; z-index: 20; }
         .hidden { display: none !important; }
         
-        h1 { font-size: 50px; color: #00fff2; margin: 0 0 20px 0; }
-        .btn-menu { background: #222; border: 2px solid #00fff2; color: white; padding: 15px 40px; font-size: 24px; margin: 10px; cursor: pointer; border-radius: 10px; font-family: 'Arial Black'; }
+        h1 { font-size: 50px; color: #00fff2; margin: 0 0 20px 0; text-shadow: 0 0 15px #00fff2; }
+        .btn-menu { background: #222; border: 2px solid #00fff2; color: white; padding: 15px 40px; font-size: 24px; margin: 10px; cursor: pointer; border-radius: 10px; font-family: 'Arial Black'; transition: 0.2s; }
         .btn-menu:active { transform: scale(0.95); background: #00fff2; color: black; }
 
         /* UYARI */
-        #demonMode { position: absolute; top: 30%; width: 100%; text-align: center; color: red; font-size: 40px; font-weight: bold; display: none; z-index: 15; letter-spacing: 5px; animation: pulse 0.5s infinite; text-shadow: 0 0 10px red; pointer-events: none; }
+        #demonMode { position: absolute; top: 30%; width: 100%; text-align: center; color: red; font-size: 40px; font-weight: bold; display: none; z-index: 15; letter-spacing: 5px; animation: pulse 0.5s infinite; text-shadow: 0 0 15px red; pointer-events: none; }
         @keyframes pulse { 0% { transform: scale(1); } 50% { transform: scale(1.1); } 100% { transform: scale(1); } }
 
         /* MAĞAZA */
         #shopGrid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 15px; margin-bottom: 20px; }
         .shop-item { width: 80px; height: 80px; background: #333; border: 2px solid #555; border-radius: 10px; display: flex; flex-direction: column; align-items: center; justify-content: center; cursor: pointer; }
         .shop-item.owned { border-color: lime; }
-        .shop-item.equipped { border-color: #00fff2; background: #222; }
+        .shop-item.equipped { border-color: #00fff2; background: #222; box-shadow: 0 0 10px #00fff2; }
         .cube-preview { width: 30px; height: 30px; border: 2px solid white; margin-bottom: 5px; }
         
         /* MOBİL KONTROLLER */
         #controls { display: none; position: absolute; bottom: 20px; width: 100%; justify-content: center; z-index: 10; }
-        .btn-jump { width: 100px; height: 100px; background: rgba(0,255,242,0.2); border: 2px solid #00fff2; border-radius: 50%; display: flex; align-items: center; justify-content: center; color: white; font-size: 40px; }
-        .btn-jump:active { background: rgba(0,255,242,0.6); }
+        .btn-jump { width: 100px; height: 100px; background: rgba(0,255,242,0.1); border: 2px solid rgba(0,255,242,0.5); border-radius: 50%; display: flex; align-items: center; justify-content: center; color: white; font-size: 40px; }
         @media (hover: none) { #controls { display: flex; } }
     </style>
 </head>
@@ -58,7 +57,7 @@
         <h2 style="color: gold;">MAĞAZA</h2>
         <div style="color: white; margin-bottom: 10px;">Paran: <span id="shopMoney">0</span>$</div>
         <div id="shopGrid"></div>
-        <button class="btn-menu" onclick="closeShop()" style="background: red; border-color: red;">GERİ DÖN</button>
+        <button class="btn-menu" onclick="closeShop()" style="background: #400; border-color: red;">GERİ DÖN</button>
     </div>
 
     <canvas id="gameCanvas"></canvas>
@@ -78,14 +77,11 @@
     const shopMenu = document.getElementById("shopMenu");
     const demonText = document.getElementById("demonMode");
 
-    // Performans için canvas boyutunu sabitle
     canvas.width = 800; canvas.height = 400;
 
-    // --- SES ---
     const bgMusic = new Audio("https://commondatastorage.googleapis.com/codeskulptor-assets/Epoq-Lepidoptera.ogg"); 
     bgMusic.loop = true; bgMusic.volume = 0.4;
 
-    // --- KAYIT SİSTEMİ ---
     let saveData = JSON.parse(localStorage.getItem("gdAlphaData")) || { money: 0, ownedSkins: [0], equipped: 0 };
     const SKINS = [
         {id: 0, color: "white", name: "Klasik", price: 0},
@@ -98,7 +94,6 @@
 
     function saveGame() { localStorage.setItem("gdAlphaData", JSON.stringify(saveData)); updateUI(); }
 
-    // --- OYUN DEĞİŞKENLERİ ---
     let gameState = "MENU";
     let score = 0;
     let speed = 7;
@@ -111,28 +106,18 @@
     let player = { x: 100, y: 340, w: 30, h: 30, dy: 0, grounded: false, angle: 0, flyMode: false, trail: [] };
     let objects = [];
 
-    // --- INPUT SİSTEMİ (BUG FIX: TAKILMA ÇÖZÜMÜ) ---
     const startAction = () => { isTouching = true; };
     const endAction = () => { isTouching = false; };
 
-    // Klavye
     window.addEventListener('keydown', (e) => { if(e.code==="Space"||e.code==="ArrowUp") isTouching=true; });
     window.addEventListener('keyup', () => { isTouching=false; });
-
-    // Mouse & Dokunmatik (Otomatik zıplamayı önlemek için güvenlikler)
     canvas.addEventListener('mousedown', startAction);
     canvas.addEventListener('mouseup', endAction);
-    canvas.addEventListener('mouseleave', endAction); // Mouse kanvastan çıkarsa zıplamayı kes
-
+    
     const jBtn = document.getElementById("jumpBtn");
     jBtn.addEventListener('touchstart', (e)=>{ e.preventDefault(); startAction(); }, {passive: false});
     jBtn.addEventListener('touchend', (e)=>{ e.preventDefault(); endAction(); }, {passive: false});
-    jBtn.addEventListener('touchcancel', endAction); // Parmak kayarsa veya arama gelirse zıplamayı kes
 
-    // Pencere odağını kaybederse (Alt-Tab vb.) durdur
-    window.addEventListener('blur', endAction);
-
-    // --- MAĞAZA ---
     function openShop() { gameState="SHOP"; mainMenu.classList.add("hidden"); shopMenu.classList.remove("hidden"); renderShop(); }
     function closeShop() { gameState="MENU"; shopMenu.classList.add("hidden"); mainMenu.classList.remove("hidden"); }
     function renderShop() {
@@ -147,13 +132,13 @@
             grid.appendChild(item);
         });
     }
+
     function buyOrEquip(skin) {
         if (saveData.ownedSkins.includes(skin.id)) { saveData.equipped = skin.id; }
         else { if (saveData.money >= skin.price) { saveData.money -= skin.price; saveData.ownedSkins.push(skin.id); saveData.equipped = skin.id; } else { alert("Yetersiz Para!"); } }
         saveGame(); renderShop();
     }
 
-    // --- OYUN ---
     function startGame() {
         gameState = "PLAY"; mainMenu.classList.add("hidden"); uiScore.innerText = "0"; demonText.style.display = "none";
         bgMusic.currentTime = 0; bgMusic.play().catch(()=>{});
@@ -163,22 +148,44 @@
         update();
     }
 
+    function spawnObject() {
+        timer++;
+        let rate = player.flyMode ? 25 : 45;
+        if(timer > rate) {
+            let r = Math.random();
+            let startX = 850;
+            if(!player.flyMode) {
+                if(r < 0.25) objects.push({x:startX, y:345, w:30, h:30, type:"spike"});
+                else if (r < 0.7) {
+                    let h = Math.random() < 0.5 ? 270 : 220;
+                    objects.push({x:startX, y:h, w:200, h:25, type:"platform"});
+                    if(Math.random()<0.4) objects.push({x:startX+80, y:h-30, w:30, h:30, type:"spike"});
+                } else {
+                    objects.push({x:startX, y:280, w:100, h:25, type:"platform"});
+                    objects.push({x:startX+130, y:210, w:100, h:25, type:"platform"});
+                }
+            } else {
+                if(r < 0.5) objects.push({x:startX, y:Math.random()*300, w:40, h:40, type:"spike"});
+                else objects.push({x:startX, y:0, w:40, h:120, type:"spike_down"});
+            }
+            timer = 0;
+        }
+    }
+
     function update() {
         if(gameState !== "PLAY") return;
 
-        // Demon Mode & Hız
         if(score >= 68) {
             if(!isDemonMode) { isDemonMode = true; demonText.style.display = "block"; setTimeout(() => demonText.style.display = "none", 3000); }
             speed = 10; player.flyMode = true;
         } else {
-            speed = 7 + (score / 40);
+            speed = 7 + (score / 50);
             player.flyMode = (score >= 20 && score < 68);
         }
 
-        // Fizik
         if(player.flyMode) {
             if(isTouching) player.dy -= 0.6; else player.dy += 0.4;
-            player.dy *= 0.95; player.angle = player.dy * 3;
+            player.dy *= 0.96; player.angle = player.dy * 3;
         } else {
             if(isTouching && player.grounded) { player.dy = -12.5; player.grounded = false; }
             player.dy += gravity;
@@ -194,21 +201,18 @@
 
         for(let i = objects.length - 1; i >= 0; i--) {
             let o = objects[i]; o.x -= speed;
-            
-            // Hassas Çarpışma
-            let pad = 8; // Hitbox küçültme (Takılmayı önler)
+            let pad = 6;
             if(player.x+30-pad > o.x && player.x+pad < o.x+o.w && player.y+30-pad > o.y && player.y+pad < o.y+o.h) {
-                if(o.type === "platform" && !player.flyMode && player.dy > 0 && player.y+25 < o.y+10) {
+                if(o.type === "platform" && !player.flyMode && player.dy > 0 && player.y+20 < o.y+10) {
                     player.y = o.y - 30; player.dy = 0; player.grounded = true; player.angle = Math.round(player.angle/90)*90;
                 } else { gameOver(); return; }
             }
             if(o.x < -300) { objects.splice(i, 1); score++; uiScore.innerText = score; }
         }
 
-        // Trail Optimizasyonu (Daha az bellek kullanımı)
         if(frameCount % 4 === 0) {
-            player.trail.push({x:player.x, y:player.y, a:0.8, ang:player.angle});
-            if(player.trail.length > 8) player.trail.shift();
+            player.trail.push({x:player.x, y:player.y, a:0.6, ang:player.angle});
+            if(player.trail.length > 10) player.trail.shift();
         }
 
         draw();
@@ -216,67 +220,58 @@
         requestAnimationFrame(update);
     }
 
-    function spawnObject() {
-        timer++;
-        let rate = player.flyMode ? 20 : 40;
-        if(timer > rate) {
-            let r = Math.random();
-            let startX = 850;
-            if(!player.flyMode) {
-                if(r < 0.2) objects.push({x:startX, y:345, w:30, h:30, type:"spike"});
-                else if (r < 0.7) {
-                    let h = Math.random() < 0.5 ? 280 : 230;
-                    objects.push({x:startX, y:h, w:210, h:20, type:"platform"});
-                    if(Math.random()<0.4) objects.push({x:startX+90, y:h-30, w:30, h:30, type:"spike"});
-                } else {
-                    objects.push({x:startX, y:290, w:100, h:20, type:"platform"});
-                    objects.push({x:startX+110, y:230, w:120, h:20, type:"platform"});
-                }
-            } else {
-                if(r < 0.5) objects.push({x:startX, y:Math.random()*300, w:40, h:40, type:"spike"});
-                else objects.push({x:startX, y:0, w:40, h:100, type:"spike_down"});
-            }
-            timer = 0;
-        }
-    }
-
     function draw() {
-        ctx.fillStyle = isDemonMode ? ((frameCount%20<10)?"#300":"black") : (player.flyMode?"#200":"#001f3f");
+        ctx.fillStyle = isDemonMode ? ((frameCount%20<10)?"#200":"black") : (player.flyMode?"#102":"#001f3f");
         ctx.fillRect(0, 0, canvas.width, canvas.height);
         
-        ctx.strokeStyle="#00fff2"; ctx.lineWidth=2; ctx.beginPath(); ctx.moveTo(0,375); ctx.lineTo(800,375); ctx.stroke();
+        // Zemin
+        ctx.strokeStyle="#00fff2"; ctx.lineWidth=3; ctx.beginPath(); ctx.moveTo(0,375); ctx.lineTo(800,375); ctx.stroke();
 
         player.trail.forEach(t => {
             ctx.save(); ctx.translate(t.x+15, t.y+15); ctx.rotate(t.ang*Math.PI/180);
-            ctx.fillStyle=`rgba(0,255,242,${t.a})`; ctx.fillRect(-15,-15,30,30); ctx.restore(); t.a-=0.05;
+            ctx.fillStyle=`rgba(0,255,242,${t.a})`; ctx.fillRect(-15,-15,30,30); ctx.restore(); t.a-=0.04;
         });
 
         let skinColor = SKINS.find(s=>s.id===saveData.equipped).color;
         ctx.save(); ctx.translate(player.x+15, player.y+15); ctx.rotate(player.angle*Math.PI/180);
+        ctx.fillStyle=skinColor;
         if(player.flyMode) {
-            ctx.fillStyle=skinColor; ctx.beginPath(); ctx.moveTo(-15,10); ctx.lineTo(15,0); ctx.lineTo(-15,-10); ctx.fill();
+            ctx.beginPath(); ctx.moveTo(-15,10); ctx.lineTo(15,0); ctx.lineTo(-15,-10); ctx.fill();
         } else {
-            ctx.fillStyle=skinColor; ctx.fillRect(-15,-15,30,30);
-            ctx.strokeStyle="white"; ctx.lineWidth=3; ctx.strokeRect(-15,-15,30,30);
-            ctx.fillStyle="black"; ctx.fillRect(5,-5,8,8);
+            ctx.fillRect(-15,-15,30,30); ctx.strokeStyle="white"; ctx.lineWidth=2; ctx.strokeRect(-15,-15,30,30);
+            ctx.fillStyle="rgba(0,0,0,0.3)"; ctx.fillRect(5,-5,8,8);
         }
         ctx.restore();
 
         objects.forEach(o => {
             if(o.type.includes("spike")) {
+                ctx.shadowBlur = 10; ctx.shadowColor = "#ff0055";
                 ctx.fillStyle="#ff0055"; ctx.beginPath();
                 if(o.type==="spike") { ctx.moveTo(o.x, o.y+o.h); ctx.lineTo(o.x+o.w/2, o.y); ctx.lineTo(o.x+o.w, o.y+o.h); }
                 else { ctx.moveTo(o.x, o.y); ctx.lineTo(o.x+o.w/2, o.y+o.h); ctx.lineTo(o.x+o.w, o.y); }
-                ctx.fill();
+                ctx.fill(); ctx.strokeStyle="white"; ctx.lineWidth=1; ctx.stroke();
+                ctx.shadowBlur = 0;
             } else {
-                ctx.fillStyle="#00fff2"; ctx.fillRect(o.x, o.y, o.w, o.h);
-                ctx.strokeStyle="white"; ctx.strokeRect(o.x, o.y, o.w, o.h);
+                // MODERN PLATFORM TASARIMI
+                ctx.fillStyle = "#111"; // Koyu iç dolgu
+                ctx.fillRect(o.x, o.y, o.w, o.h);
+                
+                ctx.fillStyle = "#00fff2"; // Neon üst çizgi
+                ctx.fillRect(o.x, o.y, o.w, 4);
+                
+                ctx.strokeStyle = "rgba(0, 255, 242, 0.4)"; // İç desen çizgileri
+                ctx.lineWidth = 1;
+                for(let j=15; j<o.w; j+=30) {
+                    ctx.beginPath(); ctx.moveTo(o.x+j, o.y+4); ctx.lineTo(o.x+j, o.y+o.h); ctx.stroke();
+                }
+
+                ctx.strokeStyle="#00fff2"; ctx.lineWidth=2; ctx.strokeRect(o.x, o.y, o.w, o.h);
             }
         });
     }
 
     function gameOver() {
-        bgMusic.pause(); bgMusic.currentTime = 0;
+        bgMusic.pause();
         saveData.money += score; saveGame();
         alert(`Oyun Bitti! Skor: ${score}`);
         gameState = "MENU"; updateUI(); mainMenu.classList.remove("hidden");
