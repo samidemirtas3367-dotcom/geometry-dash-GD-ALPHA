@@ -3,38 +3,26 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>GD ALPHA - MODERNIZED</title>
+    <title>GD ALPHA - SHAPES EDITION</title>
     <style>
         body { margin: 0; background: #000; overflow: hidden; font-family: 'Arial Black', sans-serif; touch-action: none; user-select: none; -webkit-tap-highlight-color: transparent; }
         #gameContainer { position: relative; width: 100vw; height: 100vh; display: flex; flex-direction: column; align-items: center; justify-content: center; }
         canvas { background: #001f3f; border: 4px solid #00fff2; box-shadow: 0 0 20px rgba(0, 255, 242, 0.3); max-width: 95vw; max-height: 50vw; }
-        
-        /* UI */
         #uiLayer { position: absolute; top: 10px; width: 100%; display: flex; justify-content: space-between; padding: 0 20px; box-sizing: border-box; pointer-events: none; z-index: 10; color: white; font-size: 20px; text-shadow: 2px 2px #000; }
-        
-        /* MENÜ */
         .overlay { position: absolute; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.9); display: flex; flex-direction: column; align-items: center; justify-content: center; z-index: 20; }
         .hidden { display: none !important; }
-        
         h1 { font-size: 50px; color: #00fff2; margin: 0 0 20px 0; text-shadow: 0 0 15px #00fff2; }
         .btn-menu { background: #222; border: 2px solid #00fff2; color: white; padding: 15px 40px; font-size: 24px; margin: 10px; cursor: pointer; border-radius: 10px; font-family: 'Arial Black'; transition: 0.2s; }
         .btn-menu:active { transform: scale(0.95); background: #00fff2; color: black; }
-
-        /* UYARI */
         #demonMode { position: absolute; top: 30%; width: 100%; text-align: center; color: red; font-size: 40px; font-weight: bold; display: none; z-index: 15; letter-spacing: 5px; animation: pulse 0.5s infinite; text-shadow: 0 0 15px red; pointer-events: none; }
         @keyframes pulse { 0% { transform: scale(1); } 50% { transform: scale(1.1); } 100% { transform: scale(1); } }
-
-        /* MAĞAZA */
         #shopGrid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 15px; margin-bottom: 20px; }
         .shop-item { width: 80px; height: 80px; background: #333; border: 2px solid #555; border-radius: 10px; display: flex; flex-direction: column; align-items: center; justify-content: center; cursor: pointer; }
         .shop-item.owned { border-color: lime; }
         .shop-item.equipped { border-color: #00fff2; background: #222; box-shadow: 0 0 10px #00fff2; }
-        .cube-preview { width: 30px; height: 30px; border: 2px solid white; margin-bottom: 5px; }
-        
-        /* MOBİL KONTROLLER */
         #controls { display: none; position: absolute; bottom: 20px; width: 100%; justify-content: center; z-index: 10; }
         .btn-jump { width: 100px; height: 100px; background: rgba(0,255,242,0.1); border: 2px solid rgba(0,255,242,0.5); border-radius: 50%; display: flex; align-items: center; justify-content: center; color: white; font-size: 40px; }
-        @media (hover: none) { #controls { display: flex; } }
+        /* CSS'teki media query JS çakışmasını önlemek için kaldırıldı, kontrol tamamen JS'de */
     </style>
 </head>
 <body>
@@ -44,15 +32,15 @@
         <div>Skor: <span id="scoreText">0</span></div>
         <div style="color: gold;">Para: <span id="moneyText">0</span>$</div>
     </div>
-    
     <div id="demonMode">⚠️ DEMON MODE ⚠️</div>
-
+    
     <div id="mainMenu" class="overlay">
         <h1>GD ALPHA</h1>
         <button class="btn-menu" onclick="startGame()">OYNA 🎵</button>
         <button class="btn-menu" onclick="openShop()">MAĞAZA</button>
+        <button class="btn-menu" onclick="openSettings()">AYARLAR ⚙️</button>
     </div>
-
+    
     <div id="shopMenu" class="overlay hidden">
         <h2 style="color: gold;">MAĞAZA</h2>
         <div style="color: white; margin-bottom: 10px;">Paran: <span id="shopMoney">0</span>$</div>
@@ -60,11 +48,18 @@
         <button class="btn-menu" onclick="closeShop()" style="background: #400; border-color: red;">GERİ DÖN</button>
     </div>
 
-    <canvas id="gameCanvas"></canvas>
-    
-    <div id="controls">
-        <div class="btn-jump" id="jumpBtn">⬆️</div>
+    <div id="settingsMenu" class="overlay hidden">
+        <h2 style="color: #00fff2;">AYARLAR</h2>
+        <div style="color: white; margin-bottom: 20px; font-size: 20px;">Kontrol Modu:</div>
+        <button class="btn-menu" id="btnPC" onclick="setControlMode('PC')">💻 PC (Klavye/Fare)</button>
+        <button class="btn-menu" id="btnMobil" onclick="setControlMode('Mobil')">📱 Mobil (Ekranda Buton)</button>
+        <button class="btn-menu" id="btnTahta" onclick="setControlMode('Tahta')">🏫 Akıllı Tahta (Tam Ekran Dokunma)</button>
+        <br><br>
+        <button class="btn-menu" onclick="closeSettings()" style="background: #400; border-color: red;">GERİ DÖN</button>
     </div>
+
+    <canvas id="gameCanvas"></canvas>
+    <div id="controls"><div class="btn-jump" id="jumpBtn">⬆️</div></div>
 </div>
 
 <script>
@@ -75,51 +70,85 @@
     const shopMoney = document.getElementById("shopMoney");
     const mainMenu = document.getElementById("mainMenu");
     const shopMenu = document.getElementById("shopMenu");
+    const settingsMenu = document.getElementById("settingsMenu");
     const demonText = document.getElementById("demonMode");
+    const controlsDiv = document.getElementById("controls");
 
     canvas.width = 800; canvas.height = 400;
 
     const bgMusic = new Audio("https://commondatastorage.googleapis.com/codeskulptor-assets/Epoq-Lepidoptera.ogg"); 
     bgMusic.loop = true; bgMusic.volume = 0.4;
 
-    let saveData = JSON.parse(localStorage.getItem("gdAlphaData")) || { money: 0, ownedSkins: [0], equipped: 0 };
+    // Save Data'ya controlMode eklendi
+    let saveData = JSON.parse(localStorage.getItem("gdAlphaData")) || { money: 0, ownedSkins: [0], equipped: 0, controlMode: "PC" };
+    if(!saveData.controlMode) saveData.controlMode = "PC"; // Eski save'leri güncellemek için
+
     const SKINS = [
         {id: 0, color: "white", name: "Klasik", price: 0},
-        {id: 1, color: "yellow", name: "Altın", price: 50},
-        {id: 2, color: "#ff0055", name: "Neon", price: 100},
-        {id: 3, color: "#00ff00", name: "Hacker", price: 150},
-        {id: 4, color: "cyan", name: "Buz", price: 200},
-        {id: 5, color: "purple", name: "Ender", price: 300}
+        {id: 1, color: "yellow", name: "Katman", price: 50},
+        {id: 2, color: "#ff0055", name: "X-Neon", price: 100},
+        {id: 3, color: "#00ff00", name: "Grid", price: 150},
+        {id: 4, color: "cyan", name: "Plus", price: 200},
+        {id: 5, color: "purple", name: "Diamond", price: 300}
     ];
 
     function saveGame() { localStorage.setItem("gdAlphaData", JSON.stringify(saveData)); updateUI(); }
 
-    let gameState = "MENU";
-    let score = 0;
-    let speed = 7;
-    let gravity = 0.7;
-    let timer = 0;
-    let isTouching = false;
-    let frameCount = 0;
-    let isDemonMode = false;
-
+    // Hız değişkeni speed=5 olarak başlatıldı (önceki: 7)
+    let gameState = "MENU", score = 0, speed = 5, gravity = 0.7, timer = 0, isTouching = false, frameCount = 0, isDemonMode = false;
     let player = { x: 100, y: 340, w: 30, h: 30, dy: 0, grounded: false, angle: 0, flyMode: false, trail: [] };
     let objects = [];
 
     const startAction = () => { isTouching = true; };
     const endAction = () => { isTouching = false; };
-
+    
+    // PC kontrolleri
     window.addEventListener('keydown', (e) => { if(e.code==="Space"||e.code==="ArrowUp") isTouching=true; });
     window.addEventListener('keyup', () => { isTouching=false; });
     canvas.addEventListener('mousedown', startAction);
     canvas.addEventListener('mouseup', endAction);
     
+    // Mobil buton kontrolleri
     const jBtn = document.getElementById("jumpBtn");
     jBtn.addEventListener('touchstart', (e)=>{ e.preventDefault(); startAction(); }, {passive: false});
     jBtn.addEventListener('touchend', (e)=>{ e.preventDefault(); endAction(); }, {passive: false});
 
+    // Akıllı Tahta (Tam Ekran) dokunmatik kontrolleri
+    canvas.addEventListener('touchstart', (e) => { if(saveData.controlMode === 'Tahta') { e.preventDefault(); startAction(); } }, {passive: false});
+    canvas.addEventListener('touchend', (e) => { if(saveData.controlMode === 'Tahta') { e.preventDefault(); endAction(); } }, {passive: false});
+
+    // --- AYARLAR MENÜSÜ FONKSİYONLARI ---
+    function openSettings() { 
+        gameState = "SETTINGS"; 
+        mainMenu.classList.add("hidden"); 
+        settingsMenu.classList.remove("hidden"); 
+        updateSettingsUI(); 
+    }
+    
+    function closeSettings() { 
+        gameState = "MENU"; 
+        settingsMenu.classList.add("hidden"); 
+        mainMenu.classList.remove("hidden"); 
+    }
+    
+    function setControlMode(mode) {
+        saveData.controlMode = mode;
+        saveGame();
+        updateSettingsUI();
+    }
+
+    function updateSettingsUI() {
+        document.getElementById("btnPC").style.borderColor = saveData.controlMode === "PC" ? "lime" : "#00fff2";
+        document.getElementById("btnMobil").style.borderColor = saveData.controlMode === "Mobil" ? "lime" : "#00fff2";
+        document.getElementById("btnTahta").style.borderColor = saveData.controlMode === "Tahta" ? "lime" : "#00fff2";
+        
+        // Sadece Mobil moddaysa zıplama butonunu göster
+        controlsDiv.style.display = (saveData.controlMode === "Mobil") ? "flex" : "none";
+    }
+
     function openShop() { gameState="SHOP"; mainMenu.classList.add("hidden"); shopMenu.classList.remove("hidden"); renderShop(); }
     function closeShop() { gameState="MENU"; shopMenu.classList.add("hidden"); mainMenu.classList.remove("hidden"); }
+    
     function renderShop() {
         const grid = document.getElementById("shopGrid"); grid.innerHTML = ""; shopMoney.innerText = saveData.money;
         SKINS.forEach(skin => {
@@ -127,7 +156,14 @@
             let owned = saveData.ownedSkins.includes(skin.id);
             let equipped = saveData.equipped === skin.id;
             item.className = `shop-item ${owned ? 'owned' : ''} ${equipped ? 'equipped' : ''}`;
-            item.innerHTML = `<div class="cube-preview" style="background:${skin.color}"></div><div style="font-size:10px;color:white">${skin.name}</div><div style="font-size:10px;color:${owned?'lime':'gold'}">${equipped?'SEÇİLİ':(owned?'SAHİPSİN':skin.price+'$')}</div>`;
+            
+            const previewCanvas = document.createElement("canvas");
+            previewCanvas.width = 30; previewCanvas.height = 30;
+            const pCtx = previewCanvas.getContext("2d");
+            drawSkinShape(pCtx, 15, 15, skin.color, 0, skin.id);
+            
+            item.appendChild(previewCanvas);
+            item.innerHTML += `<div style="font-size:10px;color:white;margin-top:5px">${skin.name}</div><div style="font-size:10px;color:${owned?'lime':'gold'}">${equipped?'SEÇİLİ':(owned?'SAHİPSİN':skin.price+'$')}</div>`;
             item.onclick = () => buyOrEquip(skin);
             grid.appendChild(item);
         });
@@ -139,12 +175,29 @@
         saveGame(); renderShop();
     }
 
+    function drawSkinShape(c, x, y, color, angle, id) {
+        c.save();
+        c.translate(x, y);
+        c.rotate(angle * Math.PI / 180);
+        c.strokeStyle = color;
+        c.lineWidth = 3;
+        c.strokeRect(-15, -15, 30, 30);
+        c.lineWidth = 2;
+        if (id === 1) { c.strokeRect(-8, -8, 16, 16); } 
+        else if (id === 2) { c.beginPath(); c.moveTo(-10, -10); c.lineTo(10, 10); c.moveTo(10, -10); c.lineTo(-10, 10); c.stroke(); } 
+        else if (id === 3) { c.beginPath(); c.moveTo(-15, -5); c.lineTo(15, -5); c.moveTo(-15, 5); c.lineTo(15, 5); c.stroke(); } 
+        else if (id === 4) { c.beginPath(); c.moveTo(0, -10); c.lineTo(0, 10); c.moveTo(-10, 0); c.lineTo(10, 0); c.stroke(); } 
+        else if (id === 5) { c.beginPath(); c.moveTo(0, -12); c.lineTo(12, 0); c.lineTo(0, 12); c.lineTo(-12, 0); c.closePath(); c.stroke(); } 
+        else { c.fillStyle = color; c.fillRect(-2, -2, 4, 4); }
+        c.restore();
+    }
+
     function startGame() {
         gameState = "PLAY"; mainMenu.classList.add("hidden"); uiScore.innerText = "0"; demonText.style.display = "none";
         bgMusic.currentTime = 0; bgMusic.play().catch(()=>{});
         score = 0; isDemonMode = false;
         player.y = 340; player.dy = 0; player.angle = 0; player.flyMode = false; player.trail = [];
-        objects = []; speed = 7;
+        objects = []; speed = 5; // Hız azaltıldı
         update();
     }
 
@@ -152,17 +205,14 @@
         timer++;
         let rate = player.flyMode ? 25 : 45;
         if(timer > rate) {
-            let r = Math.random();
             let startX = 850;
+            let r = Math.random();
             if(!player.flyMode) {
                 if(r < 0.25) objects.push({x:startX, y:345, w:30, h:30, type:"spike"});
-                else if (r < 0.7) {
+                else {
                     let h = Math.random() < 0.5 ? 270 : 220;
                     objects.push({x:startX, y:h, w:200, h:25, type:"platform"});
                     if(Math.random()<0.4) objects.push({x:startX+80, y:h-30, w:30, h:30, type:"spike"});
-                } else {
-                    objects.push({x:startX, y:280, w:100, h:25, type:"platform"});
-                    objects.push({x:startX+130, y:210, w:100, h:25, type:"platform"});
                 }
             } else {
                 if(r < 0.5) objects.push({x:startX, y:Math.random()*300, w:40, h:40, type:"spike"});
@@ -174,15 +224,13 @@
 
     function update() {
         if(gameState !== "PLAY") return;
-
         if(score >= 68) {
             if(!isDemonMode) { isDemonMode = true; demonText.style.display = "block"; setTimeout(() => demonText.style.display = "none", 3000); }
-            speed = 10; player.flyMode = true;
+            speed = 8; player.flyMode = true; // Demon hızı 10'dan 8'e düşürüldü
         } else {
-            speed = 7 + (score / 50);
+            speed = 5 + (score / 60); // Hızlanma ivmesi yavaşlatıldı (eskiden /50 idi)
             player.flyMode = (score >= 20 && score < 68);
         }
-
         if(player.flyMode) {
             if(isTouching) player.dy -= 0.6; else player.dy += 0.4;
             player.dy *= 0.96; player.angle = player.dy * 3;
@@ -191,14 +239,10 @@
             player.dy += gravity;
             if(!player.grounded) player.angle += 7; else player.angle = Math.round(player.angle/90)*90;
         }
-
         player.y += player.dy;
         if(player.y > 345) { player.y = 345; player.dy = 0; player.grounded = true; }
-        if(player.y < 0) { player.y = 0; player.dy = 0; }
         player.grounded = (player.y >= 345);
-
         spawnObject();
-
         for(let i = objects.length - 1; i >= 0; i--) {
             let o = objects[i]; o.x -= speed;
             let pad = 6;
@@ -209,39 +253,25 @@
             }
             if(o.x < -300) { objects.splice(i, 1); score++; uiScore.innerText = score; }
         }
-
         if(frameCount % 4 === 0) {
-            player.trail.push({x:player.x, y:player.y, a:0.6, ang:player.angle});
-            if(player.trail.length > 10) player.trail.shift();
+            player.trail.push({x:player.x, y:player.y, a:0.4, ang:player.angle});
+            if(player.trail.length > 8) player.trail.shift();
         }
-
-        draw();
-        frameCount++;
-        requestAnimationFrame(update);
+        draw(); frameCount++; requestAnimationFrame(update);
     }
 
     function draw() {
         ctx.fillStyle = isDemonMode ? ((frameCount%20<10)?"#200":"black") : (player.flyMode?"#102":"#001f3f");
         ctx.fillRect(0, 0, canvas.width, canvas.height);
-        
-        // Zemin
         ctx.strokeStyle="#00fff2"; ctx.lineWidth=3; ctx.beginPath(); ctx.moveTo(0,375); ctx.lineTo(800,375); ctx.stroke();
 
         player.trail.forEach(t => {
             ctx.save(); ctx.translate(t.x+15, t.y+15); ctx.rotate(t.ang*Math.PI/180);
-            ctx.fillStyle=`rgba(0,255,242,${t.a})`; ctx.fillRect(-15,-15,30,30); ctx.restore(); t.a-=0.04;
+            ctx.strokeStyle=`rgba(255,255,255,${t.a})`; ctx.lineWidth=2; ctx.strokeRect(-15,-15,30,30); ctx.restore();
         });
 
-        let skinColor = SKINS.find(s=>s.id===saveData.equipped).color;
-        ctx.save(); ctx.translate(player.x+15, player.y+15); ctx.rotate(player.angle*Math.PI/180);
-        ctx.fillStyle=skinColor;
-        if(player.flyMode) {
-            ctx.beginPath(); ctx.moveTo(-15,10); ctx.lineTo(15,0); ctx.lineTo(-15,-10); ctx.fill();
-        } else {
-            ctx.fillRect(-15,-15,30,30); ctx.strokeStyle="white"; ctx.lineWidth=2; ctx.strokeRect(-15,-15,30,30);
-            ctx.fillStyle="rgba(0,0,0,0.3)"; ctx.fillRect(5,-5,8,8);
-        }
-        ctx.restore();
+        let currentSkin = SKINS.find(s=>s.id===saveData.equipped);
+        drawSkinShape(ctx, player.x+15, player.y+15, currentSkin.color, player.angle, currentSkin.id);
 
         objects.forEach(o => {
             if(o.type.includes("spike")) {
@@ -252,32 +282,23 @@
                 ctx.fill(); ctx.strokeStyle="white"; ctx.lineWidth=1; ctx.stroke();
                 ctx.shadowBlur = 0;
             } else {
-                // MODERN PLATFORM TASARIMI
-                ctx.fillStyle = "#111"; // Koyu iç dolgu
-                ctx.fillRect(o.x, o.y, o.w, o.h);
-                
-                ctx.fillStyle = "#00fff2"; // Neon üst çizgi
-                ctx.fillRect(o.x, o.y, o.w, 4);
-                
-                ctx.strokeStyle = "rgba(0, 255, 242, 0.4)"; // İç desen çizgileri
-                ctx.lineWidth = 1;
-                for(let j=15; j<o.w; j+=30) {
-                    ctx.beginPath(); ctx.moveTo(o.x+j, o.y+4); ctx.lineTo(o.x+j, o.y+o.h); ctx.stroke();
-                }
-
+                ctx.fillStyle = "#111"; ctx.fillRect(o.x, o.y, o.w, o.h);
+                ctx.fillStyle = "#00fff2"; ctx.fillRect(o.x, o.y, o.w, 4);
                 ctx.strokeStyle="#00fff2"; ctx.lineWidth=2; ctx.strokeRect(o.x, o.y, o.w, o.h);
             }
         });
     }
 
     function gameOver() {
-        bgMusic.pause();
-        saveData.money += score; saveGame();
-        alert(`Oyun Bitti! Skor: ${score}`);
-        gameState = "MENU"; updateUI(); mainMenu.classList.remove("hidden");
+        bgMusic.pause(); saveData.money += score; saveGame();
+        alert(`Oyun Bitti! Skor: ${score}`); gameState = "MENU"; updateUI(); mainMenu.classList.remove("hidden");
     }
-
-    function updateUI() { uiMoney.innerText = saveData.money; }
+    
+    function updateUI() { 
+        uiMoney.innerText = saveData.money; 
+        updateSettingsUI(); // Menü açılışında kontrolleri düzgün ayarla
+    }
+    
     updateUI();
 </script>
 </body>
