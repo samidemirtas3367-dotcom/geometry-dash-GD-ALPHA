@@ -1,4 +1,5 @@
-<!DOCTYPE html>
+    
+    <!DOCTYPE html>
 <html lang="tr">
 <head>
     <meta charset="UTF-8">
@@ -9,11 +10,12 @@
         #gameContainer { position: relative; width: 100vw; height: 100vh; display: flex; flex-direction: column; align-items: center; justify-content: center; }
         canvas { background: #001f3f; border: 4px solid #00fff2; box-shadow: 0 0 20px rgba(0, 255, 242, 0.3); max-width: 95vw; max-height: 50vw; }
         #uiLayer { position: absolute; top: 10px; width: 100%; display: flex; justify-content: space-between; padding: 0 20px; box-sizing: border-box; pointer-events: none; z-index: 10; color: white; font-size: 20px; text-shadow: 2px 2px #000; }
-        .overlay { position: absolute; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.9); display: flex; flex-direction: column; align-items: center; justify-content: center; z-index: 20; }
+        .overlay { position: absolute; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.9); display: flex; flex-direction: column; align-items: center; justify-content: center; z-index: 20; text-align: center; }
         .hidden { display: none !important; }
         h1 { font-size: 50px; color: #00fff2; margin: 0 0 20px 0; text-shadow: 0 0 15px #00fff2; }
-        .btn-menu { background: #222; border: 2px solid #00fff2; color: white; padding: 15px 40px; font-size: 24px; margin: 10px; cursor: pointer; border-radius: 10px; font-family: 'Arial Black'; transition: 0.2s; }
+        .btn-menu { background: #222; border: 2px solid #00fff2; color: white; padding: 15px 40px; font-size: 24px; margin: 8px; cursor: pointer; border-radius: 10px; font-family: 'Arial Black'; transition: 0.2s; }
         .btn-menu:active { transform: scale(0.95); background: #00fff2; color: black; }
+        .btn-small { padding: 10px 15px; font-size: 14px; margin: 3px; }
         #demonMode { position: absolute; top: 30%; width: 100%; text-align: center; color: red; font-size: 40px; font-weight: bold; display: none; z-index: 15; letter-spacing: 5px; animation: pulse 0.5s infinite; text-shadow: 0 0 15px red; pointer-events: none; }
         @keyframes pulse { 0% { transform: scale(1); } 50% { transform: scale(1.1); } 100% { transform: scale(1); } }
         #shopGrid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 15px; margin-bottom: 20px; }
@@ -22,40 +24,73 @@
         .shop-item.equipped { border-color: #00fff2; background: #222; box-shadow: 0 0 10px #00fff2; }
         #controls { display: none; position: absolute; bottom: 20px; width: 100%; justify-content: center; z-index: 10; }
         .btn-jump { width: 100px; height: 100px; background: rgba(0,255,242,0.1); border: 2px solid rgba(0,255,242,0.5); border-radius: 50%; display: flex; align-items: center; justify-content: center; color: white; font-size: 40px; }
-        /* CSS'teki media query JS çakışmasını önlemek için kaldırıldı, kontrol tamamen JS'de */
+        .settings-section { margin-bottom: 15px; border-bottom: 1px solid #333; padding-bottom: 10px; width: 90%; max-width: 400px; }
+        .settings-label { color: white; margin-bottom: 5px; font-size: 16px; color: #00fff2; }
     </style>
 </head>
 <body>
 
 <div id="gameContainer">
     <div id="uiLayer">
-        <div>Skor: <span id="scoreText">0</span></div>
-        <div style="color: gold;">Para: <span id="moneyText">0</span>$</div>
+        <div><span id="txtScore">Skor:</span> <span id="scoreText">0</span></div>
+        <div style="color: gold;"><span id="txtMoney">Para:</span> <span id="moneyText">0</span>$</div>
     </div>
     <div id="demonMode">⚠️ DEMON MODE ⚠️</div>
     
     <div id="mainMenu" class="overlay">
         <h1>GD ALPHA</h1>
-        <button class="btn-menu" onclick="startGame()">OYNA 🎵</button>
-        <button class="btn-menu" onclick="openShop()">MAĞAZA</button>
-        <button class="btn-menu" onclick="openSettings()">AYARLAR ⚙️</button>
+        <button class="btn-menu" id="btnPlay" onclick="startGame()">OYNA 🎵</button>
+        <button class="btn-menu" id="btnShop" onclick="openShop()">MAĞAZA</button>
+        <button class="btn-menu" id="btnSettings" onclick="openSettings()">AYARLAR ⚙️</button>
     </div>
     
     <div id="shopMenu" class="overlay hidden">
-        <h2 style="color: gold;">MAĞAZA</h2>
-        <div style="color: white; margin-bottom: 10px;">Paran: <span id="shopMoney">0</span>$</div>
+        <h2 style="color: gold;" id="txtShopTitle">MAĞAZA</h2>
+        <div style="color: white; margin-bottom: 10px;"><span id="txtShopMoney">Paran:</span> <span id="shopMoney">0</span>$</div>
         <div id="shopGrid"></div>
-        <button class="btn-menu" onclick="closeShop()" style="background: #400; border-color: red;">GERİ DÖN</button>
+        <button class="btn-menu" id="btnShopBack" onclick="closeShop()" style="background: #400; border-color: red;">GERİ DÖN</button>
     </div>
 
-    <div id="settingsMenu" class="overlay hidden">
-        <h2 style="color: #00fff2;">AYARLAR</h2>
-        <div style="color: white; margin-bottom: 20px; font-size: 20px;">Kontrol Modu:</div>
-        <button class="btn-menu" id="btnPC" onclick="setControlMode('PC')">💻 PC (Klavye/Fare)</button>
-        <button class="btn-menu" id="btnMobil" onclick="setControlMode('Mobil')">📱 Mobil (Ekranda Buton)</button>
-        <button class="btn-menu" id="btnTahta" onclick="setControlMode('Tahta')">🏫 Akıllı Tahta (Tam Ekran Dokunma)</button>
-        <br><br>
-        <button class="btn-menu" onclick="closeSettings()" style="background: #400; border-color: red;">GERİ DÖN</button>
+    <div id="settingsMenu" class="overlay hidden" style="overflow-y: auto; padding: 40px 0;">
+        <h2 style="color: #00fff2;" id="txtSettingsTitle">AYARLAR</h2>
+        
+        <div class="settings-section">
+            <div class="settings-label" id="txtLang">Dil / Language:</div>
+            <button class="btn-menu btn-small" id="btnLangTR" onclick="setLang('TR')">TR</button>
+            <button class="btn-menu btn-small" id="btnLangEN" onclick="setLang('EN')">EN</button>
+            <button class="btn-menu btn-small" id="btnLangJP" onclick="setLang('JP')">JP</button>
+            <button class="btn-menu btn-small" id="btnLangZH" onclick="setLang('ZH')">ZH</button>
+        </div>
+
+        <div class="settings-section">
+            <div class="settings-label" id="txtSpeed">Oyun Hızı:</div>
+            <button class="btn-menu btn-small" id="btnSpeed4" onclick="setSpeed(4)">Yavaş</button>
+            <button class="btn-menu btn-small" id="btnSpeed6" onclick="setSpeed(6)">Normal</button>
+            <button class="btn-menu btn-small" id="btnSpeed8" onclick="setSpeed(8)">Hızlı</button>
+        </div>
+
+        <div class="settings-section">
+            <div class="settings-label" id="txtJump">Zıplama Gücü:</div>
+            <button class="btn-menu btn-small" id="btnJump11" onclick="setJump(11)">Düşük</button>
+            <button class="btn-menu btn-small" id="btnJump12" onclick="setJump(12.5)">Normal</button>
+            <button class="btn-menu btn-small" id="btnJump14" onclick="setJump(14)">Yüksek</button>
+        </div>
+
+        <div class="settings-section">
+            <div class="settings-label" id="txtGravity">Yerçekimi (Düşme Hızı):</div>
+            <button class="btn-menu btn-small" id="btnGrav05" onclick="setGravity(0.5)">Yavaş</button>
+            <button class="btn-menu btn-small" id="btnGrav07" onclick="setGravity(0.7)">Normal</button>
+            <button class="btn-menu btn-small" id="btnGrav09" onclick="setGravity(0.85)">Hızlı</button>
+        </div>
+
+        <div class="settings-section">
+            <div class="settings-label" id="txtCtrl">Kontrol Modu:</div>
+            <button class="btn-menu btn-small" id="btnPC" onclick="setControlMode('PC')">💻 PC</button>
+            <button class="btn-menu btn-small" id="btnMobil" onclick="setControlMode('Mobil')">📱 Mobil</button>
+            <button class="btn-menu btn-small" id="btnTahta" onclick="setControlMode('Tahta')">🏫 Tahta</button>
+        </div>
+
+        <button class="btn-menu" id="btnSettingsBack" onclick="closeSettings()" style="background: #400; border-color: red; margin-top: 10px;">GERİ DÖN</button>
     </div>
 
     <canvas id="gameCanvas"></canvas>
@@ -65,6 +100,7 @@
 <script>
     const canvas = document.getElementById("gameCanvas");
     const ctx = canvas.getContext("2d");
+    
     const uiScore = document.getElementById("scoreText");
     const uiMoney = document.getElementById("moneyText");
     const shopMoney = document.getElementById("shopMoney");
@@ -79,9 +115,22 @@
     const bgMusic = new Audio("https://commondatastorage.googleapis.com/codeskulptor-assets/Epoq-Lepidoptera.ogg"); 
     bgMusic.loop = true; bgMusic.volume = 0.4;
 
-    // Save Data'ya controlMode eklendi
-    let saveData = JSON.parse(localStorage.getItem("gdAlphaData")) || { money: 0, ownedSkins: [0], equipped: 0, controlMode: "PC" };
-    if(!saveData.controlMode) saveData.controlMode = "PC"; // Eski save'leri güncellemek için
+    let saveData = JSON.parse(localStorage.getItem("gdAlphaData")) || {};
+    if(!saveData.ownedSkins) saveData.ownedSkins = [0];
+    if(saveData.equipped === undefined) saveData.equipped = 0;
+    if(saveData.money === undefined) saveData.money = 0;
+    if(!saveData.controlMode) saveData.controlMode = "PC"; 
+    if(!saveData.lang) saveData.lang = "TR";
+    if(!saveData.baseSpeed) saveData.baseSpeed = 6;
+    if(!saveData.jumpP) saveData.jumpP = 12.5;
+    if(!saveData.gravP) saveData.gravP = 0.7;
+
+    const LANG = {
+        "TR": { play: "OYNA 🎵", shop: "MAĞAZA", settings: "AYARLAR ⚙️", score: "Skor:", money: "Para:", shopTitle: "MAĞAZA", shopMoney: "Paran:", back: "GERİ DÖN", settingsTitle: "AYARLAR", lang: "Dil / Language:", speed: "Oyun Hızı:", ctrl: "Kontrol Modu:", jumpP: "Zıplama Gücü:", gravP: "Yerçekimi (Düşme Hızı):", weak: "Düşük", norm: "Normal", strong: "Yüksek", slow: "Yavaş", fast: "Hızlı", owned: "SAHİPSİN", equipped: "SEÇİLİ", gameOver: "Oyun Bitti! Skor: ", noMoney: "Yetersiz Para!" },
+        "EN": { play: "PLAY 🎵", shop: "SHOP", settings: "SETTINGS ⚙️", score: "Score:", money: "Money:", shopTitle: "SHOP", shopMoney: "Money:", back: "BACK", settingsTitle: "SETTINGS", lang: "Language:", speed: "Game Speed:", ctrl: "Control Mode:", jumpP: "Jump Power:", gravP: "Gravity (Fall Speed):", weak: "Low", norm: "Normal", strong: "High", slow: "Slow", fast: "Fast", owned: "OWNED", equipped: "EQUIPPED", gameOver: "Game Over! Score: ", noMoney: "Not Enough Money!" },
+        "JP": { play: "プレイ 🎵", shop: "ショップ", settings: "設定 ⚙️", score: "スコア:", money: "お金:", shopTitle: "ショップ", shopMoney: "お金:", back: "戻る", settingsTitle: "設定", lang: "言語:", speed: "ゲーム速度:", ctrl: "操作モード:", jumpP: "ジャンプ力:", gravP: "重力 (落下速度):", weak: "低い", norm: "普通", strong: "高い", slow: "遅い", fast: "速い", owned: "所持", equipped: "装備中", gameOver: "ゲームオーバー! スコア: ", noMoney: "お金が足りません!" },
+        "ZH": { play: "开始游戏 🎵", shop: "商店", settings: "设置 ⚙️", score: "分数:", money: "金钱:", shopTitle: "商店", shopMoney: "你的钱:", back: "返回", settingsTitle: "设置", lang: "语言:", speed: "游戏速度:", ctrl: "控制模式:", jumpP: "跳跃力度:", gravP: "重力 (下落速度):", weak: "低", norm: "正常", strong: "高", slow: "慢", fast: "快", owned: "已拥有", equipped: "已装备", gameOver: "游戏结束！分数：", noMoney: "金钱不足！" }
+    };
 
     const SKINS = [
         {id: 0, color: "white", name: "Klasik", price: 0},
@@ -94,56 +143,89 @@
 
     function saveGame() { localStorage.setItem("gdAlphaData", JSON.stringify(saveData)); updateUI(); }
 
-    // Hız değişkeni speed=5 olarak başlatıldı (önceki: 7)
-    let gameState = "MENU", score = 0, speed = 5, gravity = 0.7, timer = 0, isTouching = false, frameCount = 0, isDemonMode = false;
+    let gameState = "MENU", score = 0, speed = saveData.baseSpeed, timer = 0, isTouching = false, frameCount = 0, isDemonMode = false;
+    let patternIndex = 0; // Rastgelelik yerine sıra indeksi
     let player = { x: 100, y: 340, w: 30, h: 30, dy: 0, grounded: false, angle: 0, flyMode: false, trail: [] };
     let objects = [];
 
     const startAction = () => { isTouching = true; };
     const endAction = () => { isTouching = false; };
     
-    // PC kontrolleri
     window.addEventListener('keydown', (e) => { if(e.code==="Space"||e.code==="ArrowUp") isTouching=true; });
     window.addEventListener('keyup', () => { isTouching=false; });
     canvas.addEventListener('mousedown', startAction);
     canvas.addEventListener('mouseup', endAction);
     
-    // Mobil buton kontrolleri
     const jBtn = document.getElementById("jumpBtn");
     jBtn.addEventListener('touchstart', (e)=>{ e.preventDefault(); startAction(); }, {passive: false});
     jBtn.addEventListener('touchend', (e)=>{ e.preventDefault(); endAction(); }, {passive: false});
 
-    // Akıllı Tahta (Tam Ekran) dokunmatik kontrolleri
     canvas.addEventListener('touchstart', (e) => { if(saveData.controlMode === 'Tahta') { e.preventDefault(); startAction(); } }, {passive: false});
     canvas.addEventListener('touchend', (e) => { if(saveData.controlMode === 'Tahta') { e.preventDefault(); endAction(); } }, {passive: false});
 
-    // --- AYARLAR MENÜSÜ FONKSİYONLARI ---
-    function openSettings() { 
-        gameState = "SETTINGS"; 
-        mainMenu.classList.add("hidden"); 
-        settingsMenu.classList.remove("hidden"); 
-        updateSettingsUI(); 
-    }
-    
-    function closeSettings() { 
-        gameState = "MENU"; 
-        settingsMenu.classList.add("hidden"); 
-        mainMenu.classList.remove("hidden"); 
-    }
-    
-    function setControlMode(mode) {
-        saveData.controlMode = mode;
-        saveGame();
-        updateSettingsUI();
-    }
+    function openSettings() { gameState = "SETTINGS"; mainMenu.classList.add("hidden"); settingsMenu.classList.remove("hidden"); updateSettingsUI(); }
+    function closeSettings() { gameState = "MENU"; settingsMenu.classList.add("hidden"); mainMenu.classList.remove("hidden"); }
+    function setControlMode(mode) { saveData.controlMode = mode; saveGame(); updateSettingsUI(); }
+    function setLang(l) { saveData.lang = l; saveGame(); updateLangUI(); }
+    function setSpeed(s) { saveData.baseSpeed = s; saveGame(); updateSettingsUI(); }
+    function setJump(j) { saveData.jumpP = j; saveGame(); updateSettingsUI(); }
+    function setGravity(g) { saveData.gravP = g; saveGame(); updateSettingsUI(); }
 
     function updateSettingsUI() {
         document.getElementById("btnPC").style.borderColor = saveData.controlMode === "PC" ? "lime" : "#00fff2";
         document.getElementById("btnMobil").style.borderColor = saveData.controlMode === "Mobil" ? "lime" : "#00fff2";
         document.getElementById("btnTahta").style.borderColor = saveData.controlMode === "Tahta" ? "lime" : "#00fff2";
         
-        // Sadece Mobil moddaysa zıplama butonunu göster
+        document.getElementById("btnLangTR").style.borderColor = saveData.lang === "TR" ? "lime" : "#00fff2";
+        document.getElementById("btnLangEN").style.borderColor = saveData.lang === "EN" ? "lime" : "#00fff2";
+        document.getElementById("btnLangJP").style.borderColor = saveData.lang === "JP" ? "lime" : "#00fff2";
+        document.getElementById("btnLangZH").style.borderColor = saveData.lang === "ZH" ? "lime" : "#00fff2";
+        
+        document.getElementById("btnSpeed4").style.borderColor = saveData.baseSpeed === 4 ? "lime" : "#00fff2";
+        document.getElementById("btnSpeed6").style.borderColor = saveData.baseSpeed === 6 ? "lime" : "#00fff2";
+        document.getElementById("btnSpeed8").style.borderColor = saveData.baseSpeed === 8 ? "lime" : "#00fff2";
+
+        document.getElementById("btnJump11").style.borderColor = saveData.jumpP === 11 ? "lime" : "#00fff2";
+        document.getElementById("btnJump12").style.borderColor = saveData.jumpP === 12.5 ? "lime" : "#00fff2";
+        document.getElementById("btnJump14").style.borderColor = saveData.jumpP === 14 ? "lime" : "#00fff2";
+
+        document.getElementById("btnGrav05").style.borderColor = saveData.gravP === 0.5 ? "lime" : "#00fff2";
+        document.getElementById("btnGrav07").style.borderColor = saveData.gravP === 0.7 ? "lime" : "#00fff2";
+        document.getElementById("btnGrav09").style.borderColor = saveData.gravP === 0.85 ? "lime" : "#00fff2";
+
         controlsDiv.style.display = (saveData.controlMode === "Mobil") ? "flex" : "none";
+    }
+
+    function updateLangUI() {
+        const t = LANG[saveData.lang];
+        document.getElementById("btnPlay").innerText = t.play;
+        document.getElementById("btnShop").innerText = t.shop;
+        document.getElementById("btnSettings").innerText = t.settings;
+        document.getElementById("txtScore").innerText = t.score;
+        document.getElementById("txtMoney").innerText = t.money;
+        document.getElementById("txtShopTitle").innerText = t.shopTitle;
+        document.getElementById("txtShopMoney").innerText = t.shopMoney;
+        document.getElementById("btnShopBack").innerText = t.back;
+        document.getElementById("txtSettingsTitle").innerText = t.settingsTitle;
+        document.getElementById("txtLang").innerText = t.lang;
+        document.getElementById("txtSpeed").innerText = t.speed;
+        document.getElementById("txtCtrl").innerText = t.ctrl;
+        document.getElementById("txtJump").innerText = t.jumpP;
+        document.getElementById("txtGravity").innerText = t.gravP;
+        
+        document.getElementById("btnSpeed4").innerText = t.slow;
+        document.getElementById("btnSpeed6").innerText = t.norm;
+        document.getElementById("btnSpeed8").innerText = t.fast;
+
+        document.getElementById("btnJump11").innerText = t.weak;
+        document.getElementById("btnJump12").innerText = t.norm;
+        document.getElementById("btnJump14").innerText = t.strong;
+
+        document.getElementById("btnGrav05").innerText = t.slow;
+        document.getElementById("btnGrav07").innerText = t.norm;
+        document.getElementById("btnGrav09").innerText = t.fast;
+
+        document.getElementById("btnSettingsBack").innerText = t.back;
     }
 
     function openShop() { gameState="SHOP"; mainMenu.classList.add("hidden"); shopMenu.classList.remove("hidden"); renderShop(); }
@@ -151,6 +233,7 @@
     
     function renderShop() {
         const grid = document.getElementById("shopGrid"); grid.innerHTML = ""; shopMoney.innerText = saveData.money;
+        const t = LANG[saveData.lang];
         SKINS.forEach(skin => {
             let item = document.createElement("div");
             let owned = saveData.ownedSkins.includes(skin.id);
@@ -162,8 +245,10 @@
             const pCtx = previewCanvas.getContext("2d");
             drawSkinShape(pCtx, 15, 15, skin.color, 0, skin.id);
             
+            let statusText = equipped ? t.equipped : (owned ? t.owned : skin.price+'$');
+            
             item.appendChild(previewCanvas);
-            item.innerHTML += `<div style="font-size:10px;color:white;margin-top:5px">${skin.name}</div><div style="font-size:10px;color:${owned?'lime':'gold'}">${equipped?'SEÇİLİ':(owned?'SAHİPSİN':skin.price+'$')}</div>`;
+            item.innerHTML += `<div style="font-size:10px;color:white;margin-top:5px">${skin.name}</div><div style="font-size:10px;color:${owned?'lime':'gold'}">${statusText}</div>`;
             item.onclick = () => buyOrEquip(skin);
             grid.appendChild(item);
         });
@@ -171,7 +256,10 @@
 
     function buyOrEquip(skin) {
         if (saveData.ownedSkins.includes(skin.id)) { saveData.equipped = skin.id; }
-        else { if (saveData.money >= skin.price) { saveData.money -= skin.price; saveData.ownedSkins.push(skin.id); saveData.equipped = skin.id; } else { alert("Yetersiz Para!"); } }
+        else { 
+            if (saveData.money >= skin.price) { saveData.money -= skin.price; saveData.ownedSkins.push(skin.id); saveData.equipped = skin.id; } 
+            else { alert(LANG[saveData.lang].noMoney); } 
+        }
         saveGame(); renderShop();
     }
 
@@ -195,30 +283,85 @@
     function startGame() {
         gameState = "PLAY"; mainMenu.classList.add("hidden"); uiScore.innerText = "0"; demonText.style.display = "none";
         bgMusic.currentTime = 0; bgMusic.play().catch(()=>{});
-        score = 0; isDemonMode = false;
+        score = 0; isDemonMode = false; patternIndex = 0;
         player.y = 340; player.dy = 0; player.angle = 0; player.flyMode = false; player.trail = [];
-        objects = []; speed = 5; // Hız azaltıldı
+        objects = []; speed = saveData.baseSpeed; 
         update();
     }
 
+    // ARTIK RASTGELE DEĞİL, SIRALI (PATTERN) SİSTEMİ ÇALIŞIYOR
     function spawnObject() {
         timer++;
-        let rate = player.flyMode ? 25 : 45;
+        let rate = player.flyMode ? 35 : Math.max(35, 60 - speed*2); 
+        
         if(timer > rate) {
             let startX = 850;
-            let r = Math.random();
+            let addedDelay = 0; // Geniş engellerden sonra bekleme süresini uzatmak için
+            
             if(!player.flyMode) {
-                if(r < 0.25) objects.push({x:startX, y:345, w:30, h:30, type:"spike"});
-                else {
-                    let h = Math.random() < 0.5 ? 270 : 220;
-                    objects.push({x:startX, y:h, w:200, h:25, type:"platform"});
-                    if(Math.random()<0.4) objects.push({x:startX+80, y:h-30, w:30, h:30, type:"spike"});
-                }
+                // Yer Engelleri Sıralaması
+                const groundPatterns = [
+                    // 1. Tekli Diken
+                    () => { objects.push({x: startX, y: 345, w: 30, h: 30, type: "spike"}); },
+                    // 2. İkili Diken
+                    () => { 
+                        objects.push({x: startX, y: 345, w: 30, h: 30, type: "spike"});
+                        objects.push({x: startX+30, y: 345, w: 30, h: 30, type: "spike"});
+                    },
+                    // 3. İki Katlı Kısa Merdiven
+                    () => {
+                        objects.push({x: startX, y: 315, w: 60, h: 60, type: "platform"});
+                        objects.push({x: startX+60, y: 275, w: 60, h: 100, type: "platform"});
+                        addedDelay = -15; // Geniş blok, biraz geç gelsin sıradaki
+                    },
+                    // 4. Nefes Alma (Sadece tek diken)
+                    () => { objects.push({x: startX, y: 345, w: 30, h: 30, type: "spike"}); },
+                    // 5. Üstünde Diken Olan Blok
+                    () => {
+                        objects.push({x: startX, y: 315, w: 90, h: 60, type: "platform"});
+                        objects.push({x: startX+30, y: 285, w: 30, h: 30, type: "spike"});
+                        addedDelay = -10;
+                    },
+                    // 6. YAVAŞ YAVAŞ YÜKSELEN 3'LÜ MERDİVEN
+                    () => { 
+                        objects.push({x: startX, y: 315, w: 50, h: 60, type: "platform"}); // Alt
+                        objects.push({x: startX+50, y: 275, w: 50, h: 100, type: "platform"}); // Orta
+                        objects.push({x: startX+100, y: 235, w: 50, h: 140, type: "platform"}); // Üst
+                        addedDelay = -25; // Çok uzun blok, sıradaki engel baya geç gelsin
+                    },
+                    // 7. Üçlü Diken (Ölümcül)
+                    () => {
+                        objects.push({x: startX, y: 345, w: 30, h: 30, type: "spike"});
+                        objects.push({x: startX+30, y: 345, w: 30, h: 30, type: "spike"});
+                        objects.push({x: startX+60, y: 345, w: 30, h: 30, type: "spike"});
+                        addedDelay = -5;
+                    },
+                    // 8. Atlamalı Boşluk (Uçurum)
+                    () => {
+                        objects.push({x: startX, y: 275, w: 60, h: 100, type: "platform"});
+                        // Ortada atlamalık boşluk (platform yok)
+                        objects.push({x: startX+150, y: 275, w: 60, h: 100, type: "platform"});
+                        addedDelay = -30;
+                    }
+                ];
+                
+                // Sıradaki patterni çalıştır
+                groundPatterns[patternIndex % groundPatterns.length]();
+                patternIndex++;
+                
             } else {
-                if(r < 0.5) objects.push({x:startX, y:Math.random()*300, w:40, h:40, type:"spike"});
-                else objects.push({x:startX, y:0, w:40, h:120, type:"spike_down"});
+                // Fly (Uçak) Modu Sıralaması
+                const flyPatterns = [
+                    () => { objects.push({x: startX, y: 220, w: 40, h: 40, type: "spike"}); },
+                    () => { objects.push({x: startX, y: 0, w: 50, h: 120, type: "spike_down"}); },
+                    () => { objects.push({x: startX, y: 260, w: 40, h: 40, type: "spike"}); },
+                    () => { objects.push({x: startX, y: 0, w: 60, h: 150, type: "spike_down"}); }
+                ];
+                flyPatterns[patternIndex % flyPatterns.length]();
+                patternIndex++;
             }
-            timer = 0;
+            
+            timer = addedDelay; // Sayacı sıfırla (veya ek bekleme süresine çek)
         }
     }
 
@@ -226,33 +369,49 @@
         if(gameState !== "PLAY") return;
         if(score >= 68) {
             if(!isDemonMode) { isDemonMode = true; demonText.style.display = "block"; setTimeout(() => demonText.style.display = "none", 3000); }
-            speed = 8; player.flyMode = true; // Demon hızı 10'dan 8'e düşürüldü
+            speed = saveData.baseSpeed + 4; 
+            player.flyMode = true; 
         } else {
-            speed = 5 + (score / 60); // Hızlanma ivmesi yavaşlatıldı (eskiden /50 idi)
+            speed = saveData.baseSpeed + (score / 30); 
+            if (speed > saveData.baseSpeed + 3) speed = saveData.baseSpeed + 3; 
             player.flyMode = (score >= 20 && score < 68);
         }
+        
         if(player.flyMode) {
             if(isTouching) player.dy -= 0.6; else player.dy += 0.4;
             player.dy *= 0.96; player.angle = player.dy * 3;
         } else {
-            if(isTouching && player.grounded) { player.dy = -12.5; player.grounded = false; }
-            player.dy += gravity;
+            // AYARLARDAN GELEN ZIPLAMA VE YERÇEKİMİ GÜCÜ
+            if(isTouching && player.grounded) { player.dy = -saveData.jumpP; player.grounded = false; }
+            player.dy += saveData.gravP; 
+            
             if(!player.grounded) player.angle += 7; else player.angle = Math.round(player.angle/90)*90;
         }
         player.y += player.dy;
+        
         if(player.y > 345) { player.y = 345; player.dy = 0; player.grounded = true; }
         player.grounded = (player.y >= 345);
+        
         spawnObject();
+        
         for(let i = objects.length - 1; i >= 0; i--) {
             let o = objects[i]; o.x -= speed;
             let pad = 6;
+            
             if(player.x+30-pad > o.x && player.x+pad < o.x+o.w && player.y+30-pad > o.y && player.y+pad < o.y+o.h) {
                 if(o.type === "platform" && !player.flyMode && player.dy > 0 && player.y+20 < o.y+10) {
-                    player.y = o.y - 30; player.dy = 0; player.grounded = true; player.angle = Math.round(player.angle/90)*90;
-                } else { gameOver(); return; }
+                    player.y = o.y - 30; 
+                    player.dy = 0; 
+                    player.grounded = true; 
+                    player.angle = Math.round(player.angle/90)*90;
+                } else { 
+                    gameOver(); return; 
+                }
             }
-            if(o.x < -300) { objects.splice(i, 1); score++; uiScore.innerText = score; }
+            
+            if(o.x < -250) { objects.splice(i, 1); score++; uiScore.innerText = score; } 
         }
+        
         if(frameCount % 4 === 0) {
             player.trail.push({x:player.x, y:player.y, a:0.4, ang:player.angle});
             if(player.trail.length > 8) player.trail.shift();
@@ -263,6 +422,7 @@
     function draw() {
         ctx.fillStyle = isDemonMode ? ((frameCount%20<10)?"#200":"black") : (player.flyMode?"#102":"#001f3f");
         ctx.fillRect(0, 0, canvas.width, canvas.height);
+        
         ctx.strokeStyle="#00fff2"; ctx.lineWidth=3; ctx.beginPath(); ctx.moveTo(0,375); ctx.lineTo(800,375); ctx.stroke();
 
         player.trail.forEach(t => {
@@ -283,7 +443,7 @@
                 ctx.shadowBlur = 0;
             } else {
                 ctx.fillStyle = "#111"; ctx.fillRect(o.x, o.y, o.w, o.h);
-                ctx.fillStyle = "#00fff2"; ctx.fillRect(o.x, o.y, o.w, 4);
+                ctx.fillStyle = "#00fff2"; ctx.fillRect(o.x, o.y, o.w, 4); 
                 ctx.strokeStyle="#00fff2"; ctx.lineWidth=2; ctx.strokeRect(o.x, o.y, o.w, o.h);
             }
         });
@@ -291,12 +451,14 @@
 
     function gameOver() {
         bgMusic.pause(); saveData.money += score; saveGame();
-        alert(`Oyun Bitti! Skor: ${score}`); gameState = "MENU"; updateUI(); mainMenu.classList.remove("hidden");
+        alert(`${LANG[saveData.lang].gameOver}${score}`); 
+        gameState = "MENU"; updateUI(); mainMenu.classList.remove("hidden");
     }
     
     function updateUI() { 
         uiMoney.innerText = saveData.money; 
-        updateSettingsUI(); // Menü açılışında kontrolleri düzgün ayarla
+        updateSettingsUI(); 
+        updateLangUI();
     }
     
     updateUI();
